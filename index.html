@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Destiny Code | Unlock Your Future</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <script>
+        // MARKETING: Affiliate Tracker
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            const ref = params.get('ref');
+            if(ref) {
+                localStorage.setItem('affiliate_id', ref);
+                console.log("Lead Source:", ref);
+            }
+        })();
+    </script>
+
+    <style>
+        /* --- GLOBAL THEME --- */
+        :root { 
+            --gold: #FFD700; 
+            --gold-grad: linear-gradient(135deg, #FFD700, #B8860B);
+            --bg-dark: #12002b; 
+            --card-bg: #1e0b36;
+            --nav-bg: #0d001f;
+            --user-bubble: #4a148c; 
+            --ai-bubble: #1f1f1f;
+            --success: #00C851; --error: #ff4444; 
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+        
+        body { 
+            background: var(--bg-dark); color: #fff; 
+            font-family: 'Outfit', sans-serif; 
+            height: 100dvh; display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        h1, h2, h3, .brand-font { font-family: 'Cinzel', serif; color: var(--gold); }
+
+        /* VIEW SYSTEM */
+        .view-container { flex: 1; position: relative; width: 100%; height: 100%; overflow: hidden; }
+        .view { position: absolute; inset: 0; overflow-y: auto; display: none; padding-bottom: 90px; }
+        .view.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* --- LANDING PAGE --- */
+        .landing-container { padding: 20px; max-width: 800px; margin: 0 auto; text-align: left; }
+        .btn-gold { 
+            background: var(--gold-grad); color: #000; padding: 15px 30px; 
+            border-radius: 50px; font-weight: 700; border: none; cursor: pointer; 
+            font-size: 1.1rem; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+            display: inline-block; text-decoration: none; width: auto; text-align: center;
+        }
+        .btn-outline { 
+            background: transparent; border: 1px solid var(--gold); color: var(--gold); 
+            padding: 8px 20px; border-radius: 50px; cursor: pointer; font-weight: 600; width: auto;
+        }
+        .hero { text-align: center; padding: 60px 0; border-bottom: 1px solid rgba(255,215,0,0.1); }
+        .hero h1 { font-size: 2.8rem; line-height: 1.1; margin: 20px 0; text-shadow: 0 0 20px rgba(255,215,0,0.2); }
+        .hero p { color: #ccc; font-size: 1.1rem; margin-bottom: 30px; }
+        .section { padding: 50px 0; }
+        .section-title { text-align: center; margin-bottom: 40px; font-size: 1.8rem; position: relative; }
+        .section-title::after { content: ''; display: block; width: 50px; height: 2px; background: var(--gold); margin: 10px auto; }
+        .landing-card { background: var(--card-bg); border: 1px solid #331a53; border-radius: 20px; padding: 25px; margin-bottom: 20px; }
+        .landing-card i { font-size: 2.5rem; color: var(--gold); margin-bottom: 15px; display: block; }
+        .review-scroll { display: flex; overflow-x: auto; gap: 20px; padding-bottom: 20px; scrollbar-width: none; }
+        .review-card { min-width: 300px; background: var(--glass); padding: 25px; border-radius: 20px; border: 1px solid #333; flex-shrink: 0; }
+        .footer { text-align: center; padding: 40px 0; border-top: 1px solid #333; color: #666; font-size: 0.8rem; }
+        .footer span { cursor: pointer; margin: 0 5px; text-decoration: underline; color: #888; transition: 0.3s; }
+        .footer span:hover { color: var(--gold); }
+
+        /* --- APP UI --- */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: var(--bg-dark); }
+        .user-badge { background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #444; }
+        .dash-content { padding: 0 20px; }
+        .card { background: var(--card-bg); border: 1px solid #331a53; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .input-box { width: 100%; background: #000; border: 1px solid #444; padding: 14px; border-radius: 10px; color: #fff; margin-bottom: 10px; outline: none; font-size: 1rem; display: block; }
+        .input-box:focus { border-color: var(--gold); }
+        .widget-row { display: flex; gap: 10px; margin-bottom: 25px; }
+        .widget { flex: 1; background: var(--card-bg); border: 1px solid #331a53; border-radius: 12px; padding: 15px 5px; text-align: center; }
+        .widget-val { font-size: 1.4rem; font-weight: bold; color: var(--gold); margin-top: 5px; }
+        .result-box { display: none; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; border: 1px solid var(--gold); }
+        .service-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
+        .service-btn { background: #111; border: 1px solid #333; border-radius: 12px; padding: 15px 5px; text-align: center; cursor: pointer; }
+
+        /* --- CHAT --- */
+        #view-chat { display: none; flex-direction: column; height: 100%; padding-bottom: 0; }
+        #view-chat.active { display: flex; }
+        .chat-header { flex: 0 0 65px; background: var(--nav-bg); border-bottom: 1px solid #331a53; display: flex; align-items: center; padding: 0 15px; gap: 15px; }
+        .avatar { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--gold); background: #000; display:flex; align-items:center; justify-content:center; font-size: 1.5rem; color: var(--gold); }
+        .limit-badge { margin-left:auto; background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; border: 1px solid #444; color: var(--gold); }
+        #chat-history { flex: 1; overflow-y: auto; padding: 20px 15px; display: flex; flex-direction: column; gap: 15px; }
+        .msg { max-width: 85%; padding: 12px 16px; border-radius: 18px; font-size: 0.95rem; line-height: 1.5; position: relative; word-wrap: break-word; margin-bottom: 10px; }
+        .msg.user { align-self: flex-end; background: var(--user-bubble); color: #fff; border-bottom-right-radius: 4px; }
+        .msg.ai { align-self: flex-start; background: var(--ai-bubble); border: 1px solid #333; color: #ddd; border-bottom-left-radius: 4px; border-left: 3px solid var(--gold); }
+        .msg.media img { width: 220px; border-radius: 12px; border: 2px solid var(--gold); display: block; }
+        .time { font-size: 0.65rem; color: rgba(255,255,255,0.5); display: block; text-align: right; margin-top: 5px; } 
+        .input-area { flex: 0 0 auto; background: var(--nav-bg); padding: 10px 15px; border-top: 1px solid #333; display: flex; gap: 12px; align-items: center; margin-bottom: 70px; }
+        .chat-input { flex: 1; background: #2a2a2a; border: none; padding: 12px 20px; border-radius: 25px; color: #fff; outline: none; font-size: 1rem; }
+        .action-btn { font-size: 1.6rem; color: var(--gold); cursor: pointer; }
+        .send-btn { width: 45px; height: 45px; border-radius: 50%; background: var(--gold); border: none; cursor: pointer; color: #000; display:flex; align-items:center; justify-content:center; font-size: 1.2rem; }
+
+        /* --- SCANNING --- */
+        .scan-container { position: relative; width: 220px; height: 280px; overflow: hidden; border-radius: 12px; margin-bottom: 10px; }
+        .scan-img { width: 100%; height: 100%; object-fit: cover; filter: sepia(1) hue-rotate(240deg) saturate(2); }
+        .laser-line { position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--gold); box-shadow: 0 0 15px var(--gold); animation: scanMove 2s linear infinite; z-index: 10; }
+        .scan-grid { position: absolute; top:0; left:0; width:100%; height:100%; background: repeating-linear-gradient(0deg, transparent, transparent 19px, rgba(0, 255, 0, 0.2) 20px), repeating-linear-gradient(90deg, transparent, transparent 19px, rgba(0, 255, 0, 0.2) 20px); z-index: 5; }
+        .scan-status { font-size: 0.75rem; color: #00C851; margin-top: 5px; font-family: monospace; }
+        @keyframes scanMove { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
+
+        /* --- PROFILE --- */
+        .profile-content { padding: 30px 20px; text-align: center; }
+        .membership-card { background: linear-gradient(135deg, #1a0525, #000); border: 1px solid var(--gold); border-radius: 20px; padding: 30px 20px; margin-bottom: 25px; }
+        .p-avatar { width: 90px; height: 90px; border-radius: 50%; border: 2px solid var(--gold); margin: 0 auto 15px; background: #000; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: var(--gold); }
+        .plan-badge { background: linear-gradient(45deg, var(--gold), var(--gold-dark)); color: #000; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.8rem; display: inline-block; margin-top: 5px; }
+        .stats-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        .stat-box { flex: 1; background: rgba(0,0,0,0.3); border: 1px solid #444; border-radius: 15px; padding: 15px; text-align: center; }
+        .stat-val { font-size: 1.5rem; font-weight: bold; color: #fff; }
+        .stat-label { font-size: 0.7rem; color: #aaa; text-transform: uppercase; }
+
+        /* SHARE CARD */
+        .share-card {
+            background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(0,0,0,0.4));
+            border: 1px solid var(--gold); border-radius: 15px; padding: 15px;
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; cursor: pointer; transition: 0.3s;
+        }
+        .share-card:active { transform: scale(0.98); background: rgba(255,215,0,0.2); }
+        .share-content { display: flex; align-items: center; gap: 15px; }
+        .share-icon { font-size: 1.5rem; color: var(--gold); }
+        .share-text h3 { font-size: 1rem; margin: 0; color: #fff; }
+        .share-text small { color: #aaa; font-size: 0.75rem; }
+
+        /* --- MODALS --- */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); align-items: center; justify-content: center; z-index: 5000; backdrop-filter: blur(5px); }
+        .modal-content { background: #1a0525; padding: 25px; border: 1px solid var(--gold); border-radius: 15px; width: 95%; max-width: 400px; text-align: center; max-height: 90vh; overflow-y: auto; position: relative; }
+        .close-icon { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: #888; cursor: pointer; }
+        .plan-card { border: 1px solid #444; padding: 15px; margin-bottom: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .plan-card.active { border-color: var(--gold); background: rgba(255, 215, 0, 0.1); }
+        .btn-opt { width: 100%; padding: 12px; margin: 6px 0; background: rgba(255,255,255,0.08); border: 1px solid #444; color: #fff; border-radius: 8px; cursor: pointer; text-align: left; display: flex; justify-content: space-between; }
+        .progress-bar { height: 4px; background: #333; margin-bottom: 10px; border-radius: 2px; }
+        .progress-fill { height: 100%; background: var(--gold); width: 0%; transition: width 0.3s; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--nav-bg); border-top: 1px solid #331a53; display: none; justify-content: space-around; align-items: center; z-index: 1000; }
+        .nav-item { color: #666; text-align: center; font-size: 0.7rem; cursor: pointer; width: 33%; }
+        .nav-item.active { color: var(--gold); transform: translateY(-3px); }
+        .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+
+        /* LEGAL MODAL STYLES */
+        .legal-modal-content {
+            background-color: #1a0525; border: 1px solid var(--gold); border-radius: 15px;
+            padding: 25px; width: 100%; max-width: 500px; max-height: 80vh; overflow-y: auto;
+            position: relative; text-align: left; box-shadow: 0 0 30px rgba(255, 215, 0, 0.1);
+        }
+        .legal-modal-content h2 { color: var(--gold); margin-top: 0; font-family: 'Cinzel', serif; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
+        .legal-modal-content p, .legal-modal-content li { color: #ccc; font-size: 0.9rem; line-height: 1.6; margin-bottom: 10px; }
+        .legal-modal-content strong { color: #fff; }
+
+        #loader { position: fixed; inset: 0; background: #000; z-index: 6000; display: flex; justify-content: center; align-items: center; color: var(--gold); font-family: 'Cinzel'; }
+        #toast-box { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; width: 90%; max-width: 350px; }
+        .toast { background: #222; border-left: 4px solid var(--gold); color: #fff; padding: 12px; border-radius: 5px; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body>
+
+    <script>window.onerror = function(msg, url, line) { alert("Code Error: " + msg); return false; };</script>
+
+    <div id="loader"><div><i class="fas fa-om fa-spin" style="font-size: 3rem;"></i><br><br>Loading Destiny...</div></div>
+    <div id="toast-box"></div>
+
+    <div class="view-container">
+
+        <div id="view-landing" class="view active">
+            <div class="landing-container">
+                <header style="display:flex; justify-content:space-between; align-items:center; padding: 20px 0;">
+                    <div class="brand-font" style="font-size:1.4rem;">MyDestinyCode</div>
+                    <button class="btn-outline" onclick="openAuth('login')">Login</button>
+                </header>
+
+                <section class="hero">
+                    <h2 style="font-size:1rem; letter-spacing: 4px; color:#aaa;">VEDIC INTELLIGENCE</h2>
+                    <h1>UNLOCK YOUR<br>DESTINY</h1>
+                    <p>Experience the ancient wisdom of the stars combined with modern celestial logic. Explore your life path today.</p>
+                    <button class="btn-gold" style="width:200px;" onclick="openAuth('register')">Get Started</button>
+                </section>
+
+                <section class="section">
+                    <h2 class="section-title">The Sacred Science</h2>
+                    <div class="landing-card">
+                        <h3><i class="fas fa-om"></i> Vedic Astrology</h3>
+                        <p style="color:#ccc;">We use precise planetary algorithms based on the 5000-year-old scriptures. No random guesses—only pure astronomical calculations of Grahas and Nakshatras.</p>
+                    </div>
+                    <div class="landing-card">
+                        <h3><i class="fas fa-hand-sparkles"></i> Deep Palmistry</h3>
+                        <p style="color:#ccc;">Your hands are the mirrors of your soul. We analyze the Life Line for vitality, the Heart Line for emotional depth, and the Fate Line for career breakthroughs.</p>
+                    </div>
+                    <div class="landing-card">
+                        <h3><i class="fas fa-fingerprint"></i> 100% Private</h3>
+                        <p style="color:#ccc;">Your destiny is personal. Every chat and calculation is encrypted and anonymous. Your data stays between you and the stars.</p>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <h2 class="section-title">Seekers' Stories</h2>
+                    <div class="review-scroll">
+                        <div class="review-card">
+                            <div style="color:var(--gold); margin-bottom:10px;">★★★★★</div>
+                            <p style="font-size:0.95rem; margin-bottom:15px; color:#fff;">"The prediction about my career transition was shockingly accurate. Samrat Guru gave me the clarity I needed."</p>
+                            <small style="color:#888;">- Rahul, Mumbai</small>
+                        </div>
+                        <div class="review-card">
+                            <div style="color:var(--gold); margin-bottom:10px;">★★★★★</div>
+                            <p style="font-size:0.95rem; margin-bottom:15px; color:#fff;">"The Cosmic Calculator's lucky numbers have genuinely brought a positive shift in my daily routine."</p>
+                            <small style="color:#888;">- Ananya, Delhi</small>
+                        </div>
+                        <div class="review-card">
+                            <div style="color:var(--gold); margin-bottom:10px;">★★★★★</div>
+                            <p style="font-size:0.95rem; margin-bottom:15px; color:#fff;">"I love the privacy. I can share my deepest concerns without any fear."</p>
+                            <small style="color:#888;">- Vikram, Pune</small>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section" style="text-align:center;">
+                    <h2 class="brand-font" style="margin-bottom:20px;">Ready to meet Samrat Guru?</h2>
+                    <button class="btn-gold" onclick="openAuth('register')">Start Your Journey</button>
+                </section>
+
+                <footer class="footer">
+                    <p>
+                        <span onclick="openLegalModal('privacy')">Privacy Policy</span> • 
+                        <span onclick="openLegalModal('terms')">Terms of Service</span> • 
+                        <span onclick="openLegalModal('refund')">Refund Policy</span>
+                    </p>
+                    <p>© 2026 MyDestinyCode. Ancient Wisdom for the Modern Seeker.</p>
+                </footer>
+            </div>
+        </div>
+
+        <div id="view-dashboard" class="view">
+            <div class="header">
+                <div class="brand-font" style="font-size:1.3rem;">MyDestinyCode</div>
+                <div class="user-badge" id="u-name">Namaste</div>
+            </div>
+            <div class="dash-content">
+                <div class="widget-row">
+                    <div class="widget" id="wid-energy"><small>Energy</small><div class="widget-val">--</div></div>
+                    <div class="widget" id="wid-lucky"><small>Lucky No</small><div class="widget-val">--</div></div>
+                    <div class="widget" id="wid-color"><small>Color</small><div class="widget-val" style="font-size:1rem; padding-top:4px;">--</div></div>
+                </div>
+                <div class="card">
+                    <h3 class="brand-font" style="margin:0;"><i class="fas fa-calculator"></i> Cosmic Calculator</h3>
+                    <p style="font-size:0.8rem; color:#aaa; margin-top:5px;">Calculate Moolank & Widgets.</p>
+                    <input type="date" id="dob-input" class="input-box">
+                    <button class="btn-gold" style="margin-top:10px; width:100%;" onclick="calcNumerology()">Reveal & Update</button>
+                    <div id="num-res" class="result-box">
+                        <div style="text-align:center;"><small>MOOLANK</small><div class="widget-val" id="res-m">0</div></div>
+                        <div style="text-align:center;"><small>BHAGYANK</small><div class="widget-val" id="res-b">0</div></div>
+                    </div>
+                </div>
+                <h3 style="margin-bottom:10px; font-size:1rem;">Premium Services</h3>
+                <div class="service-grid">
+                    <div class="service-btn" onclick="navTo('chat')"><i class="fas fa-comment-dots" style="color:var(--gold); font-size:1.5rem;"></i><br><small>Chat</small></div>
+                    <div class="service-btn" onclick="openServiceModal('kundli')"><i class="fas fa-scroll" style="color:var(--gold); font-size:1.5rem;"></i><br><small>Kundli</small></div>
+                    <div class="service-btn" onclick="openServiceModal('love')"><i class="fas fa-heart" style="color:var(--gold); font-size:1.5rem;"></i><br><small>Love</small></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-chat" class="view">
+            <div class="chat-header">
+                <div class="avatar"><i class="fas fa-om"></i></div>
+                <div class="info"><h3>Samrat Guru</h3><p>● Online</p></div>
+                <div class="limit-badge">Quota: <span id="limit-count">0</span></div>
+            </div>
+            <div id="chat-history"></div>
+            <div class="input-area">
+                <input type="file" id="palm-upload" hidden accept="image/*" onchange="handleFileUpload(this)">
+                <i class="fas fa-hand-sparkles action-btn" onclick="checkPalmAccess()"></i>
+                <input type="text" id="user-in" class="chat-input" placeholder="Ask here..." onkeypress="if(event.key==='Enter') sendMsg()">
+                <button class="send-btn" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+
+        <div id="view-profile" class="view">
+            <div class="profile-content">
+                <div class="membership-card">
+                    <div class="p-avatar"><i class="fas fa-user-astronaut"></i></div>
+                    <h2 id="p-name" class="brand-font" style="margin-bottom:5px;">User</h2>
+                    <p id="p-mobile" style="color:var(--gold); font-size:0.9rem; margin-bottom:5px;">...</p>
+                    <p id="p-email" style="color:#aaa; font-size:0.8rem; margin-bottom:10px;">...</p>
+                    <div id="p-zodiac" style="color:var(--gold); font-size:0.9rem; margin-bottom:10px;"></div>
+                    <div class="plan-badge" id="p-plan">NO PLAN</div>
+                </div>
+                <div class="stats-row">
+                    <div class="stat-box"><div class="stat-val" id="u-limit">0</div><div class="stat-label">Quota</div></div>
+                    <div class="stat-box"><div class="stat-val" style="color:var(--gold);">Active</div><div class="stat-label">Status</div></div>
+                </div>
+                
+                <div class="share-card" onclick="shareApp()">
+                    <div class="share-content">
+                        <i class="fas fa-share-alt share-icon"></i>
+                        <div class="share-text">
+                            <h3>Invite Friends</h3>
+                            <small>Share wisdom & help others.</small>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color:var(--gold);"></i>
+                </div>
+
+                <button class="btn-gold" onclick="openPaywall()">UPGRADE PLAN</button>
+                <div class="card" style="margin-top:20px;">
+                    <h3 style="margin-top:0; font-size:1.1rem;">Daily Vedic Tip</h3>
+                    <p style="color:#ccc; font-style:italic;" id="daily-tip">...</p>
+                </div>
+                <button class="btn-outline" style="border-color:#25d366; color:#25d366; margin-top:10px;" onclick="window.open('https://wa.me/918580153794?text=Support', '_blank')"><i class="fab fa-whatsapp"></i> WhatsApp Support</button>
+                <button class="btn-outline" style="margin-top:10px; border-color:var(--error); color:var(--error);" onclick="doLogout()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav" id="bottom-nav" style="display:none;">
+        <div class="nav-item active" onclick="navTo('dashboard')" id="nav-dashboard"><i class="fas fa-home"></i>Home</div>
+        <div class="nav-item" onclick="navTo('chat')" id="nav-chat"><i class="fas fa-comment-dots"></i>Chat</div>
+        <div class="nav-item" onclick="navTo('profile')" id="nav-profile"><i class="fas fa-user"></i>Profile</div>
+    </div>
+
+    <div id="auth-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-icon" onclick="document.getElementById('auth-modal').style.display='none'">&times;</span>
+            <h2 id="auth-title" class="brand-font" style="margin-bottom:20px;">Login</h2>
+            <div id="auth-form">
+                <div id="reg-fields" style="display:none;">
+                    <input type="text" id="reg-name" class="input-box" placeholder="Full Name">
+                    <input type="tel" id="reg-mobile" class="input-box" placeholder="Mobile Number (10 digits)">
+                </div>
+                <input type="email" id="email" class="input-box" placeholder="Email Address">
+                <input type="password" id="pass" class="input-box" placeholder="Password (Min 6 chars)">
+                <button class="btn-gold" style="margin-top:20px; width:100%" onclick="handleAuth()">Submit</button>
+                <div style="margin-top:20px; display:flex; justify-content:space-between;">
+                    <span class="auth-link" onclick="toggleAuthMode()" id="auth-toggle">New User? Register</span>
+                    <span class="auth-link" style="color:var(--gold);" onclick="openForgot()">Forgot Password?</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="forgot-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-icon" onclick="document.getElementById('forgot-modal').style.display='none'">&times;</span>
+            <h2 class="brand-font" style="margin-bottom:15px;">Reset Password</h2>
+            <p style="color:#aaa; font-size:0.9rem;">Enter your email to receive a password reset link.</p>
+            <input type="email" id="reset-email-input" class="input-box" placeholder="Enter Email">
+            <button class="btn-gold" style="margin-top:15px; width:100%;" onclick="sendSupabaseReset()">Send Link</button>
+        </div>
+    </div>
+
+    <div id="update-pass-modal" class="modal">
+        <div class="modal-content">
+            <h2 class="brand-font" style="margin-bottom:15px;">Set New Password</h2>
+            <p style="color:#aaa; font-size:0.9rem;">Enter your new secure password.</p>
+            <input type="password" id="new-password" class="input-box" placeholder="New Password">
+            <button class="btn-gold" style="margin-top:15px; width:100%;" onclick="updateUserPassword()">Update Password</button>
+        </div>
+    </div>
+    
+    <div id="pay-modal" class="modal"><div class="modal-content"><span class="close-icon" onclick="document.getElementById('pay-modal').style.display='none'">&times;</span><h2 class="brand-font" style="color:var(--gold);">PLANS</h2><p id="pay-msg" style="color:#aaa; font-size:0.9rem; margin-bottom:10px;">Upgrade to continue.</p><div class="plan-card" onclick="startPay(29, 'basic', 20)"><div><strong>Shishya (Basic)</strong><br><small>20 Messages (No Palm)</small></div><div style="color:var(--gold);">₹29</div></div><div class="plan-card" onclick="startPay(99, 'weekly_yogi', 100)"><div><strong>Weekly Yogi</strong><br><small>100 Msgs + 5 Scans</small></div><div style="color:var(--gold);">₹99</div></div><div class="plan-card" onclick="startPay(249, 'premium', 250)"><div><strong>Samrat (Premium)</strong><br><small>Unlimited + VIP</small></div><div style="color:var(--gold);">₹249</div></div><p style="margin-top:15px; font-size:0.8rem; color:#aaa; cursor:pointer; text-decoration:underline;" onclick="openManualQR()">Payment Failed? Try Direct QR</p></div></div>
+
+    <div id="manual-qr-modal" class="modal">
+        <div class="modal-content" style="text-align:center;">
+            <span class="close-icon" onclick="document.getElementById('manual-qr-modal').style.display='none'">&times;</span>
+            <h2 class="brand-font" style="color:var(--gold);">DIRECT QR PAY</h2>
+            <p style="font-size:0.8rem; color:#aaa; margin-bottom:10px;">If Razorpay fails:</p>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=rks67890@axl&pn=MyDestinyCode" style="width:180px; border-radius:10px; border:2px solid var(--gold);">
+            <button class="btn-gold" style="margin-top:15px; width:100%; background:#25d366; color:#fff;" onclick="sendProofOnWhatsapp()">
+                <i class="fab fa-whatsapp"></i> Send Screenshot
+            </button>
+        </div>
+    </div>
+
+    <div id="kundli-modal" class="modal"><div class="modal-content"><span class="close-icon" onclick="document.getElementById('kundli-modal').style.display='none'">&times;</span><h2 class="brand-font" style="margin-bottom:15px;">INSTANT KUNDLI</h2><div id="k-form"><input type="text" id="k-place" class="input-box" placeholder="Birth City"><label style="font-size:0.7rem; color:#aaa; display:block; text-align:left;">Date of Birth:</label><input type="date" id="k-date" class="input-box"><label style="font-size:0.7rem; color:#aaa; display:block; text-align:left;">Time of Birth:</label><input type="time" id="k-time" class="input-box"><button class="btn-gold" style="margin-top:20px;" onclick="generateKundli()">Generate</button></div><div id="k-result" style="display:none; margin-top:15px; color:#fff; font-size:0.9rem; text-align:left;"></div></div></div>
+    <div id="love-modal" class="modal"><div class="modal-content"><span class="close-icon" onclick="document.getElementById('love-modal').style.display='none'">&times;</span><h2 class="brand-font" style="margin-bottom:15px;">LOVE MATCH</h2><div id="l-form"><h3 style="color:var(--gold); font-size:0.9rem;">Boy</h3><input type="text" id="b-name" class="input-box" placeholder="Name"><input type="date" id="b-dob" class="input-box"><h3 style="color:var(--gold); font-size:0.9rem;">Girl</h3><input type="text" id="g-name" class="input-box" placeholder="Name"><input type="date" id="g-dob" class="input-box"><button class="btn-gold" style="margin-top:20px;" onclick="generateLove()">Match</button></div><div id="l-result" style="display:none; margin-top:15px; color:#fff; font-size:0.9rem; text-align:left;"></div></div></div>
+    <div id="qs-modal" class="modal"><div class="modal-content"><div style="display:flex; justify-content:space-between; font-size:0.7rem; color:var(--gold); margin-bottom:5px;"><span>VERIFICATION</span><span id="step-count">1/5</span></div><div class="progress-bar" style="background:#333; height:4px;"><div class="progress-fill" id="p-bar" style="background:var(--gold); height:100%; width:0%;"></div></div><p style="font-size:0.8rem; color:#aaa; margin-bottom:5px;">Check Reference:</p><img src="https://i.ibb.co/cc7TCDtn/1767167272248.png" id="modal-ref-img" style="width:100%; border-radius:10px;"><p id="q-text" style="color:#fff; font-weight:bold; margin:15px 0;"></p><div id="options-container"></div></div></div>
+    
+    <div id="legal-modal" class="modal">
+        <div class="legal-modal-content">
+            <span class="close-icon" onclick="document.getElementById('legal-modal').style.display='none'">&times;</span>
+            <h2 id="modal-title">Policy Title</h2>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        // ⚠️ REPLACE WITH YOUR ACTUAL KEYS
+        const GROQ_KEY = "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";
+        const SUPABASE_URL = "https://mlhcuqquvshrjsvwzcwe.supabase.co"; 
+        const SUPABASE_KEY = "sb_publishable_s1JBw33woVu81I2Z-uRn4g_BJHgUxOy"; 
+
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let user = null;
+        let profile = { plan: 'free', msg_left: 0, palm_data: {scans: 0} };
+        let authType = 'login';
+        let currentStep = 0;
+
+        // --- PASSWORD RECOVERY ---
+        _supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === "PASSWORD_RECOVERY") {
+                document.getElementById('update-pass-modal').style.display = 'flex';
+            }
+        });
+
+        async function updateUserPassword() {
+            const newPass = document.getElementById('new-password').value;
+            if (!newPass) return alert("Enter a password");
+            const { data, error } = await _supabase.auth.updateUser({ password: newPass });
+            if (data) {
+                alert("Success! Password changed. Logging you in...");
+                document.getElementById('update-pass-modal').style.display = 'none';
+                window.location.href = "/";
+            }
+            if (error) alert("Error: " + error.message);
+        }
+
+                // --- EXPANDED LEGAL CONTENT (Professional & Safe) ---
+        const legalContent = {
+            privacy: `
+                <p><strong>Effective Date:</strong> January 2026</p>
+                <p>Welcome to <strong>My Destiny Code</strong>. We value your trust and are committed to protecting your personal data.</p>
+                
+                <h3 style="color:var(--gold); margin-top:15px;">1. Information We Collect</h3>
+                <ul>
+                    <li><strong>Personal Details:</strong> Name, Email, Mobile Number (for account creation).</li>
+                    <li><strong>Astrological Data:</strong> Date of Birth, Time of Birth, Place of Birth (strictly for chart calculation).</li>
+                    <li><strong>Biometric Data:</strong> Palm Images (uploaded voluntarily for palmistry analysis). These images are processed instantly and are not used for facial recognition.</li>
+                </ul>
+
+                <h3 style="color:var(--gold); margin-top:15px;">2. How We Use Your Data</h3>
+                <p>We use your data solely to:</p>
+                <ul>
+                    <li>Generate Vedic Kundli and Horoscope charts.</li>
+                    <li>Provide AI-driven astrological guidance.</li>
+                    <li>Process payments and activate subscription plans.</li>
+                </ul>
+                <p><strong>We DO NOT sell, trade, or rent your personal information to third parties.</strong></p>
+
+                <h3 style="color:var(--gold); margin-top:15px;">3. Data Security</h3>
+                <p>Your data is stored on secure, encrypted servers (Supabase). We implement industry-standard security measures to prevent unauthorized access.</p>
+
+                <h3 style="color:var(--gold); margin-top:15px;">4. User Rights</h3>
+                <p>You have the right to request the deletion of your account and data at any time by contacting support.</p>
+            `,
+            
+            terms: `
+                <p><strong>Please read these Terms carefully before using My Destiny Code.</strong></p>
+
+                <h3 style="color:var(--gold); margin-top:15px;">1. Acceptance of Terms</h3>
+                <p>By accessing or using our website, you agree to be bound by these Terms. You must be at least 18 years old to use our services.</p>
+
+                <h3 style="color:var(--gold); margin-top:15px;">2. ASTROLOGY DISCLAIMER (Important)</h3>
+                <p style="color:#ffcccb;"><strong>For Entertainment Purposes Only:</strong> The astrological predictions, guidance, and remedies provided by "Samrat Guru" (AI) are based on Vedic scriptures but are intended for spiritual and entertainment purposes only.</p>
+                <p><strong>Not Professional Advice:</strong> Our services do not replace professional advice from medical doctors, lawyers, financial advisors, or psychologists. My Destiny Code is not responsible for any life decisions you make based on these predictions.</p>
+
+                <h3 style="color:var(--gold); margin-top:15px;">3. User Conduct</h3>
+                <p>You agree not to use abusive language with the AI or upload inappropriate images. Violation of this rule may result in immediate account termination without refund.</p>
+
+                <h3 style="color:var(--gold); margin-top:15px;">4. Limitation of Liability</h3>
+                <p>My Destiny Code shall not be liable for any direct, indirect, or consequential damages arising from the use of our service.</p>
+            `,
+            
+            refund: `
+                <h3 style="color:var(--gold); margin-top:15px;">1. No-Refund Policy on Digital Services</h3>
+                <p>Since our services (Chat Quota, Reports, Analysis) are digital in nature and are consumed instantly upon purchase, we maintain a <strong>Strict No-Refund Policy</strong>.</p>
+                <p>Once a plan is active and the quota is credited, it cannot be reversed.</p>
+
+                <h3 style="color:var(--gold); margin-top:15px;">2. Exceptions (Technical Errors)</h3>
+                <p>A refund may be considered <strong>ONLY</strong> in the following cases:</p>
+                <ul>
+                    <li>If money was deducted from your bank but the Plan was not activated.</li>
+                    <li>If a duplicate payment was made for the same plan due to a server glitch.</li>
+                </ul>
+
+                <h3 style="color:var(--gold); margin-top:15px;">3. How to Request a Refund</h3>
+                <p>If you face a technical error, please contact us within 3 days of the transaction.</p>
+                <p><strong>Email:</strong> support@mydestinycode.in</p>
+                <p><strong>WhatsApp:</strong> +918580153794 (Click Support Button)</p>
+                <p>Valid refunds will be processed to the original payment source within 5-7 working days.</p>
+            `
+        };
+        
+
+        // --- INIT ---
+        async function init() {
+            setTimeout(() => document.getElementById('loader').style.display='none', 2000); 
+            try {
+                const { data } = await _supabase.auth.getSession();
+                if(data.session) {
+                    user = data.session.user;
+                    await fetchProfile();
+                    navTo('dashboard');
+                    document.getElementById('bottom-nav').style.display = 'flex';
+                    updateDailyTip();
+                    loadChatHistory();
+                } else {
+                    navTo('landing');
+                }
+            } catch(e) { console.error(e); }
+        }
+        init();
+
+        function navTo(viewId) {
+            document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-'+viewId).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if(viewId !== 'landing') document.getElementById('nav-'+viewId).classList.add('active');
+        }
+
+        async function fetchProfile() {
+            let { data, error } = await _supabase.from('profiles').select('*').eq('id', user.id).single();
+            if(!data) {
+                // If profile missing (Rare), use metadata locally.
+                // NOTE: We do NOT insert here anymore because SQL Trigger handles it.
+                const meta = user.user_metadata || {};
+                data = { 
+                    id: user.id, email: user.email, full_name: meta.full_name || 'User', mobile: meta.mobile || 'No Mobile', plan: 'free', msg_left: 0, palm_data: { scans: 0 }
+                };
+            }
+            profile = data;
+            
+            document.getElementById('u-name').innerText = profile.full_name || "User";
+            document.getElementById('p-name').innerText = profile.full_name || "User";
+            document.getElementById('p-email').innerText = profile.email || "";
+            document.getElementById('p-mobile').innerText = profile.mobile || "No Mobile";
+            document.getElementById('p-plan').innerText = profile.plan ? profile.plan.toUpperCase() : "FREE";
+            document.getElementById('u-limit').innerText = profile.msg_left;
+            document.getElementById('limit-count').innerText = profile.msg_left;
+            
+            if(profile.dob) {
+                const d = new Date(profile.dob);
+                const day = d.getDate(); const month = d.getMonth()+1;
+                const signs = ["Capricorn (Makar)","Aquarius (Kumbh)","Pisces (Meen)","Aries (Mesh)","Taurus (Vrishabh)","Gemini (Mithun)","Cancer (Kark)","Leo (Simha)","Virgo (Kanya)","Libra (Tula)","Scorpio (Vrishchik)","Sagittarius (Dhanu)"];
+                let idx = 0;
+                if((month==1 && day<=19)||(month==12 && day>=22)) idx=0;
+                else if((month==1 && day>=20)||(month==2 && day<=18)) idx=1;
+                else if((month==2 && day>=19)||(month==3 && day<=20)) idx=2;
+                else if((month==3 && day>=21)||(month==4 && day<=19)) idx=3;
+                else if((month==4 && day>=20)||(month==5 && day<=20)) idx=4;
+                else if((month==5 && day>=21)||(month==6 && day<=20)) idx=5;
+                else if((month==6 && day>=21)||(month==7 && day<=22)) idx=6;
+                else if((month==7 && day>=23)||(month==8 && day<=22)) idx=7;
+                else if((month==8 && day>=23)||(month==9 && day<=22)) idx=8;
+                else if((month==9 && day>=23)||(month==10 && day<=22)) idx=9;
+                else if((month==10 && day>=23)||(month==11 && day<=21)) idx=10;
+                else idx=11;
+                document.getElementById('p-zodiac').innerText = "Sign: " + signs[idx];
+            }
+        }
+
+        function updateDailyTip() {
+            const tips = ["Surya ko jal dein.", "Gayatri Mantra padhein.", "Safed vastra pehnein.", "Tulsi mein deepak jalayein.", "Maun vrat rakhein.", "Gau mata ko roti khilayein.", "Aaj krodh na karein."];
+            document.getElementById('daily-tip').innerText = `"${tips[new Date().getDate() % tips.length]}"`;
+        }
+
+        function openAuth(mode) {
+            authType = mode;
+            document.getElementById('auth-modal').style.display = 'flex';
+            document.getElementById('auth-title').innerText = mode==='login'?"Login":"Create Account";
+            document.getElementById('reg-fields').style.display = mode==='register'?"block":"none";
+            document.getElementById('auth-toggle').innerText = mode==='login'?"New User? Register":"Already User? Login";
+        }
+        function toggleAuthMode() { authType = authType==='login'?'register':'login'; openAuth(authType); }
+        function openForgot() { document.getElementById('auth-modal').style.display='none'; document.getElementById('forgot-modal').style.display='flex'; }
+
+        // --- UNIVERSAL AUTH HANDLER (Works with ON/OFF Verification) ---
+        async function handleAuth() {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('pass').value;
+            const n = document.getElementById('reg-name').value;
+            const m = document.getElementById('reg-mobile').value;
+
+            if(!e || !p) return showToast("Fill all details", "error");
+            if(authType === 'register' && (!n || !m)) return showToast("Name/Mobile Required", "error");
+
+            try {
+                if(authType === 'register') {
+                    // Sign Up with Metadata (Trigger handles DB Insert)
+                    const { data, error } = await _supabase.auth.signUp({ 
+                        email: e, 
+                        password: p, 
+                        options: { data: { full_name: n, mobile: m } } 
+                    });
+                    
+                    if(error) throw error;
+                    
+                    // CHECK: Verification State
+                    if (data.user && !data.session) {
+                        alert("✅ Account Created!\n\nPlease check your email to confirm your account before logging in.");
+                        location.reload(); 
+                    } 
+                    else if (data.session) {
+                        showToast("Created! Logging in...", "success");
+                        // Delay slightly to let SQL Trigger finish
+                        setTimeout(() => window.location.reload(), 1000);
+                    }
+                } else {
+                    const { error } = await _supabase.auth.signInWithPassword({ email: e, password: p });
+                    if(error) throw error; 
+                    window.location.reload();
+                }
+            } catch(err) { showToast(err.message, "error"); }
+        }
+
+        async function sendSupabaseReset() {
+            const email = document.getElementById('reset-email-input').value;
+            if(!email) return showToast("Enter email", "error");
+            const { error } = await _supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
+            if(error) showToast(error.message, "error");
+            else { showToast("Link sent to Email!", "success"); document.getElementById('forgot-modal').style.display='none'; }
+        }
+
+        async function sendMsg() {
+            const inp = document.getElementById('user-in'); const txt = inp.value.trim();
+            if(!txt) return;
+            if(profile.msg_left <= 0) { openPaywall(); return; }
+            
+            const userMsg = { user_id: user.id, message: txt, sender: 'user' };
+            await _supabase.from('chat_history').insert([userMsg]);
+            appendMsg(txt, 'user'); 
+            
+            inp.value="";
+            profile.msg_left--; 
+            document.getElementById('u-limit').innerText = profile.msg_left;
+            document.getElementById('limit-count').innerText = profile.msg_left;
+
+            if(user) _supabase.from('profiles').update({ msg_left: profile.msg_left }).eq('id', user.id).then();
+            getGroqReply(txt);
+        }
+
+        async function getGroqReply(text, isHidden=false) {
+            if(!isHidden) showTyping("Nakshatra ganana...");
+            else showTyping("Analyzing palm...");
+
+            let context = [];
+            const { data: history } = await _supabase.from('chat_history').select('message, sender').eq('user_id', user.id).order('created_at', { ascending: false }).limit(6);
+            if(history) context = history.reverse().map(h => ({ role: h.sender === 'user' ? 'user' : 'assistant', content: h.message }));
+
+            const sysPrompt = `You are Samrat, a strict but knowledgeable Vedic Astrologer. Persona: Guru/Baba. Language: Hinglish (Default). If user speaks English/Hindi/Gujarati/Telugu, SWITCH instantly. Rules: 1. NO Pizza/Coding questions (Scold gently). 2. Explain with Grah/Nakshatra. 3. Be personal (Vats, Beta). 4. Keep answers short (under 8 sentences).`;
+            const messages = [{role: "system", content: sysPrompt}, ...context, {role: "user", content: text}];
+
+            try {
+                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST", headers: { "Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: messages })
+                });
+                const data = await res.json();
+                if(data.error) throw new Error(data.error.message);
+
+                removeTyping();
+                const reply = data.choices[0].message.content;
+                
+                await _supabase.from('chat_history').insert([{ user_id: user.id, message: reply, sender: 'ai' }]);
+                appendMsg(reply, 'ai');
+            } catch(e) { removeTyping(); appendMsg("⚠️ Error: " + e.message, 'ai'); }
+        }
+
+        function appendMsg(t, s) { 
+            const d = document.createElement('div'); d.className = `msg ${s}`;
+            if (s === 'user') {
+                d.innerHTML = `${t}<br><span class="time">Just Now</span>`;
+                document.getElementById('chat-history').appendChild(d);
+            } else {
+                d.innerHTML = `<span id="type-${Date.now()}"></span><br><span class="time">Just Now</span>`;
+                document.getElementById('chat-history').appendChild(d);
+                const span = d.querySelector('span');
+                let i = 0;
+                function type() {
+                    if (i < t.length) { span.innerHTML += t.charAt(i); i++; document.getElementById('chat-history').scrollTop = document.getElementById('chat-history').scrollHeight; setTimeout(type, 20); }
+                }
+                type();
+            }
+            document.getElementById('chat-history').scrollTop = document.getElementById('chat-history').scrollHeight; 
+        }
+
+        async function loadChatHistory() {
+            const c = document.getElementById('chat-history');
+            c.innerHTML = `<div class="msg ai">Pranam ${profile.full_name || 'Vats'}! 🕉️<br>I am Samrat.<span class="time">Now</span></div>`;
+            const { data: history } = await _supabase.from('chat_history').select('*').eq('user_id', user.id).order('created_at', { ascending: true });
+            if(history) {
+                history.forEach(h => { 
+                    const d = document.createElement('div'); d.className = `msg ${h.sender === 'user' ? 'user' : 'ai'}`;
+                    d.innerHTML = `${h.message}<br><span class="time">${new Date(h.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>`;
+                    c.appendChild(d);
+                });
+                c.scrollTop = c.scrollHeight;
+            }
+        }
+
+        function showToast(msg, type) { const b = document.getElementById('toast-box'); b.innerHTML = `<div class="toast" style="border-left-color:${type==='error'?'red':'#00C851'}">${msg}</div>`; setTimeout(() => b.innerHTML="", 3000); }
+        function appendImage(src,s) { const d = document.createElement('div'); d.className = `msg ${s} media`; d.innerHTML = `<img src="${src}"><span class="time">Just Now</span>`; document.getElementById('chat-history').appendChild(d); }
+        function showTyping(txt) { const d = document.createElement('div'); d.className = `msg ai`; d.id="typing"; d.innerHTML = `<em>${txt}</em>`; document.getElementById('chat-history').appendChild(d); document.getElementById('chat-history').scrollTop = document.getElementById('chat-history').scrollHeight; }
+        function removeTyping() { const el = document.getElementById('typing'); if(el) el.remove(); }
+        
+        function openLegalModal(type) {
+            const modal = document.getElementById('legal-modal');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            if (type === 'privacy') { title.innerText = "Privacy Policy"; body.innerHTML = legalContent.privacy; } 
+            else if (type === 'terms') { title.innerText = "Terms of Service"; body.innerHTML = legalContent.terms; } 
+            else if (type === 'refund') { title.innerText = "Refund Policy"; body.innerHTML = legalContent.refund; }
+            modal.style.display = "flex";
+        }
+        
+        function calcNumerology() {
+            const d = document.getElementById('dob-input').value; if(!d) return alert("Select Date");
+            const sum = n => { while(n>9) n=n.toString().split('').reduce((a,b)=>+a + +b,0); return n; };
+            const day = new Date(d).getDate();
+            document.getElementById('num-res').style.display='grid';
+            document.getElementById('res-m').innerText = sum(day);
+            document.getElementById('res-b').innerText = sum(d.replace(/-/g,'').split('').reduce((a,b)=>+a + +b,0));
+            const energy = 80 + (day % 20);
+            const colors = ["Gold", "White", "Yellow", "Red", "Blue"];
+            document.querySelector('#wid-energy .widget-val').innerText = energy + "%";
+            document.querySelector('#wid-lucky .widget-val').innerText = sum(day);
+            document.querySelector('#wid-color .widget-val').innerText = colors[day % 5];
+            if(user) _supabase.from('profiles').update({ dob: d }).eq('id', user.id).then();
+        }
+        
+        function openServiceModal(type) { if(type==='kundli') document.getElementById('kundli-modal').style.display='flex'; else document.getElementById('love-modal').style.display='flex'; }
+        
+        async function callAI(prompt, resId) {
+            try {
+                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST", headers: { "Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: [{role: "system", content: "You are a Vedic Astrologer."}, {role: "user", content: prompt}] })
+                });
+                const data = await res.json();
+                document.getElementById(resId).innerHTML = `<p style="line-height:1.6; text-align:left;">${data.choices[0].message.content}</p><button class="btn-outline" style="margin-top:10px;" onclick="document.querySelectorAll('.modal').forEach(m=>m.style.display='none')">Close</button>`;
+            } catch(e) { alert("Server Busy"); document.querySelectorAll('.modal').forEach(m=>m.style.display='none'); }
+        }
+        
+        async function generateKundli() { const p=document.getElementById('k-place').value; const d=document.getElementById('k-date').value; const t=document.getElementById('k-time').value; if(!p||!d||!t) return alert("Fill all details"); document.getElementById('k-form').style.display='none'; document.getElementById('k-result').style.display='block'; document.getElementById('k-result').innerHTML = "Generating..."; callAI(`Generate MINI Kundli in Hinglish for ${d} ${t} ${p}. End with: 'Purn Kundli ke liye Premium Plan lein.'`, 'k-result'); }
+        async function generateLove() { const b=document.getElementById('b-name').value; const bd=document.getElementById('b-dob').value; const g=document.getElementById('g-name').value; const gd=document.getElementById('g-dob').value; if(!b||!g) return alert("Fill details"); document.getElementById('l-form').style.display='none'; document.getElementById('l-result').style.display='block'; document.getElementById('l-result').innerHTML = "Matching..."; callAI(`Love Match Hinglish: Boy ${b} vs Girl ${g}. Output Score /36 and verdict.`, 'l-result'); }
+        
+        function checkPalmAccess() { const plan = profile.plan; const scans = (profile.palm_data && profile.palm_data.scans) ? profile.palm_data.scans : 0; if (plan === 'free' || plan === 'basic') { document.getElementById('pay-msg').innerText = "Vats! Basic plan mein hastrekha allowed nahi hai. Yogi baniye."; openPaywall(); } else if (plan === 'weekly_yogi' && scans >= 5) { document.getElementById('pay-msg').innerText = "Aapke 5 scan poore ho gaye. Unlimited ke liye Samrat baniye."; openPaywall(); } else { document.getElementById('palm-upload').click(); } }
+        
+        function handleFileUpload(input) { 
+            if(input.files[0]) { 
+                const file = input.files[0]; 
+                const reader = new FileReader(); 
+                reader.onload = function(e) { 
+                    appendImage(e.target.result, 'user'); 
+                    if(profile.plan === 'weekly_yogi') { 
+                        const current = (profile.palm_data.scans || 0) + 1; 
+                        const newData = { ...profile.palm_data, scans: current }; 
+                        profile.palm_data = newData; 
+                        if(user) _supabase.from('profiles').update({ palm_data: newData }).eq('id', user.id).then(); 
+                    } 
+                    setTimeout(() => { 
+                        const scanId = 'scan-' + Date.now(); 
+                        const scanHTML = `<div class="scan-container" id="${scanId}"><img src="${e.target.result}" class="scan-img"><div class="laser-line"></div><div class="scan-grid"></div><div class="scan-status">Scanning Lines...</div></div>`; 
+                        const div = document.createElement('div'); div.className = 'msg ai media'; div.innerHTML = scanHTML; 
+                        document.getElementById('chat-history').appendChild(div); 
+                        document.getElementById('chat-history').scrollTop = document.getElementById('chat-history').scrollHeight; 
+                        const statusEl = document.getElementById(scanId).querySelector('.scan-status'); 
+                        
+                        setTimeout(() => statusEl.innerText = "Analyzing Mounts...", 2000); 
+                        setTimeout(() => statusEl.innerText = "Checking Vedic Signs...", 4000); 
+                        setTimeout(() => statusEl.innerText = "Reading Life Line...", 6000);
+
+                        setTimeout(() => { 
+                            document.getElementById(scanId).remove(); 
+                            appendMsg("Vats! Rekhayein thodi dhundhli (blurry) hain. Sahi bhavishyavani ke liye mujhe tumhara sahyog chahiye. Is chart se milan karke batao.", 'ai'); 
+                            
+                            setTimeout(() => { 
+                                currentStep = 0; 
+                                document.getElementById('qs-modal').style.display='flex'; 
+                                renderQuestion(); 
+                            }, 4000); 
+                        }, 8000); 
+                    }, 1000); 
+                }; 
+                reader.readAsDataURL(file); 
+            } 
+        }
+        
+        const palmQs=[ {q:"Tumhari **Heart Line** (Hridaya Rekha) kaisi hai?", opts:["Curved (Upar Mudi)", "Straight (Seedhi)", "Broken (Tuti Hui)"]}, {q:"Tumhari **Life Line** (Jeevan Rekha) kaisi hai?", opts:["Deep & Long (Gehri)", "Faint (Halki)", "Chained (Zanjeer)"]}, {q:"Tumhari **Head Line** (Mashtishk Rekha) kaisi hai?", opts:["Sloping (Jhuki hui)", "Straight (Seedhi)", "Forked (Do-mukhi)"]}, {q:"Tumhari **Fate Line** (Bhagya Rekha) kaisi hai?", opts:["Straight (Seedhi)", "Absent (Gayab)", "Zigzag (Tedi-Medi)"]}, {q:"Tumhare **Mounts** (Parvat) kaise hain?", opts:["Puffy (Ubhare hue)", "Flat (Sapaat)", "Hard (Sakht)"]} ];
+        
+        function renderQuestion() { 
+            const d=palmQs[currentStep]; 
+            document.getElementById('q-text').innerHTML=d.q; 
+            document.getElementById('step-count').innerText=(currentStep+1)+"/5"; 
+            document.getElementById('p-bar').style.width=((currentStep+1)/5)*100+"%"; 
+            const c=document.getElementById('options-container'); c.innerHTML=""; 
+            d.opts.forEach(o=>{ 
+                const b=document.createElement('button'); b.className="btn-opt"; b.innerText=o; 
+                b.onclick=()=>{ if(currentStep<4){currentStep++; renderQuestion();} else{document.getElementById('qs-modal').style.display='none'; getGroqReply("Predict future based on these palm signs.");} }; 
+                c.appendChild(b); 
+            }); 
+        }
+        
+        function openPaywall(msg) { if(msg) document.getElementById('pay-msg').innerText = msg; document.getElementById('pay-modal').style.display='flex'; }
+        
+        function openManualQR() {
+            document.getElementById('pay-modal').style.display = 'none';
+            document.getElementById('manual-qr-modal').style.display = 'flex';
+        }
+
+        function sendProofOnWhatsapp() {
+            const mobile = "919709404134"; // REPLACE WITH YOUR NUMBER
+            const msg = `Namaste Guru Ji! 🙏%0A` +
+                        `Maine payment kar diya hai via QR.%0A` +
+                        `My Name: ${profile.full_name}%0A` +
+                        `My Email: ${profile.email}%0A` +
+                        `My Mobile: ${profile.mobile}%0A` +
+                        `Please activate my plan.%0A%0A(Attach Screenshot Below)`;
+            window.open(`https://wa.me/${mobile}?text=${msg}`, '_blank');
+        }
+
+        function shareApp() {
+            const refLink = `https://mydestinycode.in/?ref=${user.id}`; // REPLACE WITH YOUR DOMAIN
+            const msg = `Namaste! 🙏\nMaine apni Kundli aur Hastrekha check ki 'My Destiny Code' par.\nBahut sateek hai! Aap bhi try karein:\n${refLink}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        function startPay(amt, plan, limit) { 
+            // ⚠️ REPLACE WITH YOUR REAL RAZORPAY KEY
+            const RAZORPAY_KEY_ID = "rzp_live_XXXXXXXXXXXXXX"; 
+            const affiliateRef = localStorage.getItem('affiliate_id') || 'organic';
+
+            const options = {
+                "key": RAZORPAY_KEY_ID, 
+                "amount": amt * 100, 
+                "currency": "INR",
+                "name": "My Destiny Code",
+                "description": "Plan: " + plan.toUpperCase(),
+                "image": "https://cdn-icons-png.flaticon.com/512/2555/2555572.png",
+                "notes": { "plan_name": plan, "referrer_id": affiliateRef, "user_mobile": profile.mobile },
+                "handler": async function (response) {
+                    const { error } = await _supabase.from('profiles').update({ plan: plan, msg_left: limit, palm_data: { scans: 0 } }).eq('id', user.id);
+                    if(!error) { alert("🎉 Payment Successful! Plan Upgraded."); window.location.reload(); } 
+                    else { alert("Update Failed. Contact Support with Screenshot."); }
+                },
+                "prefill": { "name": profile.full_name || "User", "email": profile.email || "", "contact": profile.mobile || "" },
+                "theme": { "color": "#FFD700" }
+            };
+
+            const rzp1 = new Razorpay(options);
+            rzp1.on('payment.failed', function (response){ alert("Payment Failed! \nReason: " + response.error.description); });
+            rzp1.open();
+        }
+        
+        async function doLogout() { await _supabase.auth.signOut(); localStorage.clear(); window.location.reload(); }
+        window.onclick = function(e) { if(e.target.classList.contains('modal')) e.target.style.display='none'; }
+    </script>
+</body>
+</html>
