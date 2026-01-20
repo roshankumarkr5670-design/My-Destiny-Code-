@@ -860,24 +860,28 @@
         async function doLogout() { await _supabase.auth.signOut(); localStorage.clear(); window.location.reload(); }
         window.onclick = function(e) { if(e.target.classList.contains('modal')) e.target.style.display='none'; }
         
-        // --- SPECIAL FIX: Password Reset Modal Open Karne Ke Liye ---
-    window.addEventListener('DOMContentLoaded', () => {
-        // Check karo ki kya URL me 'recovery' likha hai?
-        if (window.location.hash.includes("type=recovery")) {
-            console.log("Recovery Mode Detected!");
+          // --- ZIDDI FIX: 2 Second Wait karke zabardasti kholna ---
+    window.addEventListener('load', () => {
+        
+        // 1.5 Second ka wait karo (taaki Supabase apna kaam khatam kar le)
+        setTimeout(() => {
             
-            // 1. New Password wala dabba kholo
-            const resetModal = document.getElementById('update-pass-modal');
-            if (resetModal) {
-                resetModal.style.display = 'flex';
-            }
+            // Ab check karo URL
+            if (window.location.hash.includes("type=recovery")) {
+                
+                console.log("Recovery Mode Detected - Forcing Open!"); 
 
-            // 2. Login wala dabba band karo (agar khula ho to)
-            const authModal = document.getElementById('auth-modal');
-            if (authModal) {
-                authModal.style.display = 'none';
+                const resetModal = document.getElementById('update-pass-modal');
+                const authModal = document.getElementById('auth-modal');
+
+                // Zabardasti Kholo
+                if (resetModal) resetModal.style.display = 'flex';
+                
+                // Login wala band karo
+                if (authModal) authModal.style.display = 'none';
             }
-        }
+            
+        }, 1500); // 1500ms = 1.5 seconds delay
     });
 
 </script>
