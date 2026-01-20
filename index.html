@@ -859,6 +859,27 @@
         
         async function doLogout() { await _supabase.auth.signOut(); localStorage.clear(); window.location.reload(); }
         window.onclick = function(e) { if(e.target.classList.contains('modal')) e.target.style.display='none'; }
-    </script>
+        
+        // --- SPECIAL FIX: Password Reset Modal Open Karne Ke Liye ---
+    window.addEventListener('DOMContentLoaded', () => {
+        // Check karo ki kya URL me 'recovery' likha hai?
+        if (window.location.hash.includes("type=recovery")) {
+            console.log("Recovery Mode Detected!");
+            
+            // 1. New Password wala dabba kholo
+            const resetModal = document.getElementById('update-pass-modal');
+            if (resetModal) {
+                resetModal.style.display = 'flex';
+            }
+
+            // 2. Login wala dabba band karo (agar khula ho to)
+            const authModal = document.getElementById('auth-modal');
+            if (authModal) {
+                authModal.style.display = 'none';
+            }
+        }
+    });
+
+</script>
 </body>
 </html>
