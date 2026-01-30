@@ -36,6 +36,24 @@
             --success: #00C851; --error: #ff4444; 
             --glass: rgba(255, 255, 255, 0.05);
         }
+        /* --- WHATSAPP STYLE DOTS --- */
+.typing-indicator {
+    display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px;
+}
+.typing-dot {
+    width: 6px; height: 6px; background-color: var(--gold); border-radius: 50%;
+    animation: typingBounce 1.4s infinite ease-in-out both;
+}
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes typingBounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+}
+.msg-fade-in { animation: fadeInMsg 0.3s ease-out; }
+@keyframes fadeInMsg { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         
@@ -645,8 +663,8 @@
         }
 
         async function getGroqReply(text, isHidden=false) {
-            if(!isHidden) showTyping("Nakshatra ganana...");
-            else showTyping("Analyzing palm...");
+            if(!isHidden) showTyping( );
+            else showTyping(" ");
 
             let context = [];
             const { data: history } = await _supabase.from('chat_history').select('message, sender').eq('user_id', user.id).order('created_at', { ascending: false }).limit(6);
@@ -671,23 +689,42 @@
             } catch(e) { removeTyping(); appendMsg("⚠️ Error: " + e.message, 'ai'); }
         }
 
-        function appendMsg(t, s) { 
-            const d = document.createElement('div'); d.className = `msg ${s}`;
-            if (s === 'user') {
-                d.innerHTML = `${t}<br><span class="time">Just Now</span>`;
-                document.getElementById('chat-history').appendChild(d);
-            } else {
-                d.innerHTML = `<span id="type-${Date.now()}"></span><br><span class="time">Just Now</span>`;
-                document.getElementById('chat-history').appendChild(d);
-                const span = d.querySelector('span');
-                let i = 0;
-                function type() {
-                    if (i < t.length) { span.innerHTML += t.charAt(i); i++; document.getElementById('chat-history').scrollTop = document.getElementById('chat-history').scrollHeight; setTimeout(type, 20); }
-                }
-                type();
-            }
-            document.getElementById('chat-history').scrollTop = document.getElementById('chat-history').scrollHeight; 
-        }
+        // ✅ YE NAYA CODE PASTE KARO
+
+// 1. Dots wala typing effect
+function showTyping() { 
+    const d = document.createElement('div'); 
+    d.className = `msg ai`; 
+    d.id = "typing"; 
+    d.innerHTML = `<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`; 
+    document.getElementById('chat-history').appendChild(d); 
+    document.getElementById('chat-history').scrollTop = document.getElementById('chat-history').scrollHeight; 
+}
+
+// 2. Dots hatana
+function removeTyping() { 
+    const el = document.getElementById('typing'); 
+    if(el) el.remove(); 
+}
+
+// 3. Fast Message (WhatsApp Style)
+function appendMsg(t, s) { 
+    const d = document.createElement('div'); 
+    d.className = `msg ${s} msg-fade-in`; 
+    const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    
+    if (s === 'user') {
+        d.innerHTML = `${t}<br><span class="time">${time}</span>`;
+    } else {
+        // Formatting fix
+        let formattedText = t.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+        d.innerHTML = `${formattedText}<br><span class="time">${time}</span>`;
+    }
+    
+    document.getElementById('chat-history').appendChild(d);
+    document.getElementById('chat-history').scrollTop = document.getElementById('chat-history').scrollHeight; 
+}
+
 
         async function loadChatHistory() {
             const c = document.getElementById('chat-history');
