@@ -830,32 +830,74 @@
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
-        function startPay(amt, plan, limit) { 
-            // ⚠️ REPLACE WITH YOUR REAL RAZORPAY KEY
-            const RAZORPAY_KEY_ID = "rzp_live_S6o3xSrlvj5kSq"; 
-            const affiliateRef = localStorage.getItem('affiliate_id') || 'organic';
+        // IS NAYE CODE KO PASTE KARO 👇👇👇
 
-            const options = {
-                "key": RAZORPAY_KEY_ID, 
-                "amount": amt * 100, 
-                "currency": "INR",
-                "name": "My Destiny Code",
-                "description": "Plan: " + plan.toUpperCase(),
-                "image": "https://cdn-icons-png.flaticon.com/512/2555/2555572.png",
-                "notes": { "plan_name": plan, "referrer_id": affiliateRef, "user_mobile": profile.mobile },
-                "handler": async function (response) {
-                    const { error } = await _supabase.from('profiles').update({ plan: plan, msg_left: limit, palm_data: { scans: 0 } }).eq('id', user.id);
-                    if(!error) { alert("🎉 Payment Successful! Plan Upgraded."); window.location.reload(); } 
-                    else { alert("Update Failed. Contact Support with Screenshot."); }
-                },
-                "prefill": { "name": profile.full_name || "User", "email": profile.email || "", "contact": profile.mobile || "" },
-                "theme": { "color": "#FFD700" }
-            };
+function startPay(amt, plan, limit) { 
+    // Apni Key Check kar lena
+    const RAZORPAY_KEY_ID = "rzp_live_S6o3xSrlvj5kSq"; 
+    
+    const affiliateRef = localStorage.getItem('affiliate_id') || 'organic';
 
-            const rzp1 = new Razorpay(options);
-            rzp1.on('payment.failed', function (response){ alert("Payment Failed! \nReason: " + response.error.description); });
-            rzp1.open();
-        }
+    const options = {
+        "key": RAZORPAY_KEY_ID, 
+        "amount": amt * 100, 
+        "currency": "INR",
+        "name": "My Destiny Code",
+        "description": "Plan: " + plan.toUpperCase(),
+        "image": "https://cdn-icons-png.flaticon.com/512/2555/2555572.png",
+        "notes": { "plan_name": plan, "referrer_id": affiliateRef, "user_mobile": profile.mobile || "" },
+        
+        // --- CRASH PROOF HANDLER ---
+        "handler": async function (response) {
+            // 1. User ko turant batao
+            alert("Payment Success! Updating App...");
+
+            try {
+                // 2. Database Update
+                const { error } = await _supabase
+                    .from('profiles')
+                    .update({ plan: plan, msg_left: limit, palm_data: { scans: 0 } })
+                    .eq('id', user.id);
+
+                if (error) throw error;
+
+                // 3. Screen Update (Bina Reload Kiye) -> NO CRASH
+                profile.plan = plan;
+                profile.msg_left = limit;
+                profile.palm_data = { scans: 0 };
+
+                // Texts change karo
+                if(document.getElementById('u-limit')) document.getElementById('u-limit').innerText = limit;
+                if(document.getElementById('limit-count')) document.getElementById('limit-count').innerText = limit;
+                if(document.getElementById('p-plan')) document.getElementById('p-plan').innerText = plan.toUpperCase();
+                
+                // Modal band karo
+                document.getElementById('pay-modal').style.display = 'none';
+
+                // Final Msg
+                alert("🎉 Plan Activated! Check your quota.");
+
+            } catch (err) {
+                console.error(err);
+                alert("Payment ho gayi par update nahi hua. Screenshot lekar WhatsApp karein.");
+            }
+        },
+        
+        "prefill": { 
+            "name": profile.full_name || "User", 
+            "email": profile.email || "", 
+            "contact": profile.mobile || "" 
+        },
+        "theme": { "color": "#FFD700" }
+    };
+
+    var rzp1 = new Razorpay(options);
+    rzp1.on('payment.failed', function (response){ 
+        alert("Payment Failed! \nReason: " + response.error.description); 
+    });
+    rzp1.open();
+}
+
         
         async function doLogout() { await _supabase.auth.signOut(); localStorage.clear(); window.location.reload(); }
         window.onclick = function(e) { if(e.target.classList.contains('modal')) e.target.style.display='none'; }
